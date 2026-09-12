@@ -27,7 +27,7 @@ last_midi_vals = [-1] * num_sliders
 
 # 4. Init MIDI interface
 m = MIDIInterface()
-usb.device.get().init(m, builtin_driver=True)
+usb.device.get().init(m, builtin_driver=True) ## uncomment this to deactivated midi compliant device
 
 print(f"--- MICROPYTHON 4-SLIDER MIDI CONTROLLER ({num_sliders} CHANNELS) ---")
 
@@ -40,7 +40,7 @@ while True:
         smoothed_vals[i] = (raw_val * beta) + (smoothed_vals[i] * (1 - beta))
         
         # C. Map 12-bit range (0-4095) to 7-bit MIDI range (0-127)
-        midi_val = int(smoothed_vals[i] / 32.25)
+        midi_val = 127 - int(smoothed_vals[i] / 32)
         
         # Clamp values within strict MIDI limits
         if midi_val > 127: midi_val = 127
@@ -48,11 +48,10 @@ while True:
         
         # D. Send MIDI message only if value changes
         if midi_val != last_midi_vals[i]:
-            # print("MIDI:", midi_val)
+            
+            #print(f"Slider: {i}; MIDI: {midi_val}") ## uncomment for debug purpose
 
             # Control Change message (176 = CC Ch. 1, MIDI_CCS[i] = CC Number, midi_val = Value)
-            #msg = bytes([CHANNEL, MIDI_CCS[i], midi_val])
-            #sys.stdout.write(msg)
             m.control_change(CHANNEL, MIDI_CCS[i], midi_val)
             
             last_midi_vals[i] = midi_val
