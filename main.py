@@ -1,11 +1,14 @@
 import machine
 import time
 import sys
+import usb.device
+from usb.device.midi import MIDIInterface
 
 # 1. Hardware pin mapping for Arduino Nano ESP32 in MicroPython
 # A0 -> Pin(1), A1 -> Pin(2), A2 -> Pin(3), A3 -> Pin(4)
 PINS = [1, 2, 3, 4]
 MIDI_CCS = [20, 21, 22, 23] # Associated MIDI Control Change numbers
+CHANNEL = 176 # 176 = CC Ch. 1
 
 # 2. Initialize ADC channels
 sliders = []
@@ -21,6 +24,10 @@ num_sliders = len(sliders)
 # Initialize states for each slider
 smoothed_vals = [s.read() for s in sliders]
 last_midi_vals = [-1] * num_sliders
+
+# 4. Init MIDI interface
+m = MIDIInterface()
+usb.device.get().init(m, builtin_driver=True)
 
 print(f"--- MICROPYTHON 4-SLIDER MIDI CONTROLLER ({num_sliders} CHANNELS) ---")
 
@@ -41,9 +48,12 @@ while True:
         
         # D. Send MIDI message only if value changes
         if midi_val != last_midi_vals[i]:
+            # print("MIDI:", midi_val)
+
             # Control Change message (176 = CC Ch. 1, MIDI_CCS[i] = CC Number, midi_val = Value)
-            msg = bytes([176, MIDI_CCS[i], midi_val])
-            sys.stdout.write(msg)
+            #msg = bytes([CHANNEL, MIDI_CCS[i], midi_val])
+            #sys.stdout.write(msg)
+            m.control_change(CHANNEL, MIDI_CCS[i], midi_val)
             
             last_midi_vals[i] = midi_val
             
