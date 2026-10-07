@@ -10,6 +10,8 @@ CHANNEL = 176 # 176 = CC Ch. 1
 
 # Smoothing factor: 0.05 = smooth/slow, 0.9 = fast/noisy --> can be changed to fit your needs
 BETA = 0.2
+# Temporal smoothing (should be strictly set between 0 and 1)
+TETA = 0.8
 
 # Delay between 2 cycles --> should not be changed
 DELAY = 0.005
@@ -42,7 +44,7 @@ while True:
         
         # Exponential moving average filter + custom value change filter
         smoothed_val = (raw_val * BETA) + (smoothed_vals[i] * (1 - BETA))
-        if abs(smoothed_val-smoothed_vals[i])/32>BETA:
+        if abs(smoothed_val-smoothed_vals[i])/32>TETA:
           smoothed_vals[i] = smoothed_val
         
         # Map 12-bit range (0-4095) to 7-bit MIDI range (0-127)
@@ -53,7 +55,7 @@ while True:
         elif midi_val < 0: midi_val = 0
         
         # Send MIDI message only if value changes
-        if abs(midi_val-last_midi_vals[i])>0:
+        if midi_val != last_midi_vals[i]:
             
             #print(f"Slider: {i}; MIDI: {midi_val}") ## uncomment for debug purpose
 
